@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Summarizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .upload-section {
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            max-width: 500px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            display: block;
+        }
+        button {
+            background-color: #ff5722;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #e64a19;
+        }
+        .progress-bar {
+            margin: 20px auto;
+            width: 100%;
+            max-width: 500px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-bar div {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            position: absolute;
+            animation: progress 3s linear;
+        }
+        .summary-output {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Audio Summarizer</h1>
+    <div class="upload-section">
+        <form id="audioForm">
+            <label for="audioFile">Upload your MPEG audio file:</label>
+            <input type="file" id="audioFile" name="audioFile" accept=".mpeg, .mp3, .wav" required>
+            <button type="submit">Summarize Audio</button>
+        </form>
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div></div>
+        </div>
+    </div>
+    <div id="summaryOutput" class="summary-output" style="display: none;"></div>
+
+    <script>
+        document.getElementById('audioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('audioFile');
+            if (!fileInput.files.length) {
+                alert('Please upload a valid MPEG audio file.');
+                return;
+            }
+
+            const progressBar = document.getElementById('progressBar');
+            const summaryOutput = document.getElementById('summaryOutput');
+            progressBar.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('audioFile', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/summarize-audio', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+                progressBar.style.display = 'none';
+
+                if (response.ok) {
+                    summaryOutput.style.display = 'block';
+                    summaryOutput.innerHTML = `<h3>Summary:</h3><p>${result.summary}</p>`;
+                } else {
+                    summaryOutput.style.display = 'block';
+                    summaryOutput.innerHTML = `<h3>Error:</h3><p>${result.error || 'An error occurred.'}</p>`;
+                }
+            } catch (error) {
+                progressBar.style.display = 'none';
+                summaryOutput.style.display = 'block';
+                summaryOutput.innerHTML = `<h3>Error:</h3><p>${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
